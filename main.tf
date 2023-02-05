@@ -110,7 +110,31 @@ resource "azurerm_linux_virtual_machine" "first-vm" {
     sku       = "18.04-LTS"
     version   = "latest"
   }
+
+  provisioner "local-exec" {
+    command = templatefile("${var.host_os}-ssh-script.tpl", {
+      hostname     = self.public_ip_address,
+      user         = "adminuser",
+      identityfile = "~/.ssh/azureKeySSH"
+
+    })
+    interpreter = ["Powershell", "-command"]
+  }
 }
+
+data "azurerm_public_ip" "first-data" {
+  name                = azurerm_public_ip.first-ip.name 
+  resource_group_name = azurerm_resource_group.first-rg.name 
+}
+
+output "Public-IP-Adress" {
+  value = "${azurerm_linux_virtual_machine.first-vm.name}: ${data.azurerm_public_ip.first-data.ip_address}"
+
+
+}
+
+
+
 
 
 
